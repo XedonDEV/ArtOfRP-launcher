@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html ng-app="App">
+<head>
+    <meta charset="UTF-8">
+    <title>ArtOfRP-Launcher</title>
+
+    <!-- config -->
+    <script src="config.js"></script>
+
+    <!-- angular -->
+    <script src="node_modules/angular/angular.js"></script>
+    <script src="node_modules/angular-tooltips/dist/angular-tooltips.min.js"></script>
+    <link href="node_modules/angular-tooltips/dist/angular-tooltips.min.css" rel="stylesheet">
+
+    <!-- tether -->
+    <link href="node_modules/tether/dist/css/tether.min.css" rel="stylesheet">
+    <script src="node_modules/tether/dist/js/tether.min.js"></script>
+
+    <!-- jquery -->
+    <script type="text/javascript">
+      window.$ = window.jQuery = require('./resources/jquery/jquery-1.12.3.min.js');
+    </script>
+
+    <!-- bootstrap -->
+    <link href="resources/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <!-- fa icons-->
+    <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
+
+    <!-- alertify -->
+    <script src="node_modules/alertify/lib/alertify.min.js"></script>
+    <!-- include the core styles -->
+    <link rel="stylesheet" href="resources/css/alertify.core.css" />
+
+    <!-- perfect-scrollbar -->
+    <script src="node_modules/perfect-scrollbar/dist/js/perfect-scrollbar.jquery.min.js"></script>
+    <link rel="stylesheet" href="node_modules/perfect-scrollbar/dist/css/perfect-scrollbar.min.css">
+
+    <link href="node_modules/icheck/skins/minimal/minimal.css" rel="stylesheet">
+    <script src="node_modules/icheck/icheck.min.js"></script>
+
+    <!-- custom css/js -->
+    <link rel="stylesheet" href="resources/css/custom.css">
+    <!-- HoverCSS css/js -->
+    <link rel="stylesheet" href="resources/css/hover.css">
+    <link rel="stylesheet" href="resources/css/hover-min.css">
+
+    <script type="text/javascript" src="index.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="bg-img"></div>
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container container-navbar">
+            <div class="navbar-header">
+                <a href="https://artofrp.de/" class="navbar-brand"><img class="hvr-rotate hvr-grow" src="resources/img/logo.png"></a>
+                <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="navbar-collapse collapse" id="navbar-main">
+                <ul class="nav navbar-nav">
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button ng-click="refresh()"
+                                class="btn btn-success btn-reload glyphicon glyphicon-refresh"></button>
+                    </li>
+                    <li>
+                        <button ng-click="minimizeApp()"
+                                class="btn btn-warning btn-minimize glyphicon glyphicon-minus"></button>
+                    </li>
+                    <li>
+                        <button ng-click="closeApp()"
+                                class="btn btn-danger btn-close glyphicon glyphicon-remove"></button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="content">
+        <div class="container">
+            <div class="container-menu">
+            <ul class="nav nav-tabs nav-justified main-nav">
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <li class="active"><a data-toggle="tab" href="#mods"><i class="fa fa-code fa-2x" aria-hidden="true"></i></a></li><br>
+                <li><a id="tfar" data-toggle="tab" href="#TFAR"><i class="fa fa-microphone fa-2x" aria-hidden="true"></i></a></li><br>
+                <li><a id="settingsTab" data-toggle="tab" href="#settings"><i class="fa fa-cogs fa-2x" aria-hidden="true"></i></a></li><br>
+                <li><a id="news" data-toggle="tab" href="#NEWS"><i class="fa fa-newspaper-o fa-2x" aria-hidden="true"></i></a></li><br>
+                <li><a id="faqtab" data-toggle="tab" href="#faq"><i class="fa fa-question fa-2x" aria-hidden="true"></i></a></li><br>
+                <li><a data-toggle="tab" href="#about"><i class="fa fa-info-circle fa-2x" aria-hidden="true"></i></a></li>
+            </ul>
+            </div>
+            <br>
+            <br>
+            <br>
+            <div class="tab-content main-content">
+                <div id="mods" class="tab-pane fade in active">
+                    <div class="row">
+                        <div ng-controller="modController" data-ng-init="init()">
+                        <div class="col-lg-8" id="modScroll" style="position: relative">
+                            <div class="loading-centered" ng-if="loading">
+                                <img src="resources/loading/ellipsis.svg">
+                            </div>
+                            <div id="modCarousel" class="carousel slide" data-ride="carousel" data-interval="false">
+                                <!-- Wrapper for slides -->
+                                <div class="carousel-inner" role="listbox">
+                                    <div class="item" ng-repeat="mod in mods" ng-class='{active:$first}'>
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                            </div>
+                                            <div class="col-md-8">
+                                                <div class="panel panel-mod">
+                                                    <div class="panel-heading">
+                                                        <h4 class="margin-none">{{mod.Name}}</h4>
+                                                    </div>
+                                                    <div class="panel-body">
+                                                        <img ng-src="{{mod.ImageUrl}}" class="modImg img-thumbnail">
+                                                    </div>
+                                                    <div class="panel-footer">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <button class="btn btn-success btn-sm"
+                                                                    ng-click="action(mod)"
+                                                                    ng-disabled="downloading || mod.state[0] == 0">
+                                                                {{mod.state[1]}}
+                                                            </button>
+                                                            <button class="btn btn-warning btn-sm"
+                                                                    ng-show="mod.state[0] !== 0 && mod.HasGameFiles"
+                                                                    ng-click="initHash(mod)" ng-disabled="downloading">
+                                                                Prüfen
+                                                            </button>
+                                                            <button class="btn btn-success btn-sm" ng-show="mod.state[0] !== 0 && mod.HasGameFiles" ng-click="openModDir(mod)"><span class=" glyphicon glyphicon-folder-open"></span></button>
+                                                        </div>
+                                                    </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                                <br>
+                                <br>
+                                <!-- Left and right controls -->
+                                <!--
+                                <a class="left carousel-control" href="#modCarousel" role="button" data-slide="prev">
+                                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                                    <span class="sr-only">Previous</span>
+                                </a>
+                                <a class="right carousel-control" href="#modCarousel" role="button" data-slide="next">
+                                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                                    <span class="sr-only">Next</span>
+                                </a> -->
+                            </div>
+                        </div>
+                        <div class="down-list">
+                            <div ng-controller="modController" data-ng-init="init()">
+                            <ul class="list-group list-group-unbordered margin-none">
+                                <li class="list-group-item">
+                                    <b>Status</b> <a class="pull-right"><span tooltips tooltip-template="{{hint}}">{{state}}</span></a>
+                                </li>
+                                <li class="list-group-item" ng-if="downloading && downSpeed > 0">
+                                    <b>Geschwindigkeit</b> <a class="pull-right"><span tooltips tooltip-template="Download Geschwindigkeit">{{downSpeed}} Mb/s</span></a>
+                                </li>
+                                <li class="list-group-item" ng-if="totalSize > 0">
+                                    <b>Heruntergeladen</b> <a class="pull-right">{{totalDownloaded}} GB/{{totalSize}} GB</a>
+                                </li>
+                                <li class="list-group-item" ng-if="totalETA !== ''">
+                                    <b>Verbleibend</b> <a class="pull-right"><span tooltips tooltip-template="Zeit verbleibend">{{totalETA}}</span></a>
+
+                                <li class="list-group-item" ng-if="fileSpeed > 0">
+                                    <b>Datei</b> <a class="pull-right">{{fileSpeed}} Mb/s</a>
+                                </li>
+                                <li class="list-group-item" ng-if="fileName !== ''">
+                                    <b>Dateiname</b> <a class="pull-right">{{fileName}}</a>
+                                </li>
+                            </ul>
+                            <br>
+                            <button class="btn btn-danger btn-sm pull-right" ng-click="cancel()" ng-if="downloading">
+                                Abbrechen <i class="fa fa-times"></i></button>
+                        </div>
+                    </div>
+            <div class="pg-bars">
+                    <div class="col-md-12">
+                        <span class="label label-primary label-large" ng-if="fileName !== ''">{{fileName}}</span>
+                        <span class="label label-primary pull-right" ng-if="speed > 0">{{speed}} Mb/s</span>
+                        <div class="progress progress-striped active">
+                            <div class="progress-bar progress-bar-success" style="width: {{fileProgress}}%;"></div>
+                        </div>
+                        <div class="progress progress-striped active">
+                            <div class="progress-bar" style="width: {{totalProgress}}%"></div>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+                </div>
+                 <br>
+                 <br>
+                 <br>
+                 <div id="TFAR" class="tab-pane fade">
+                     <div id="tfar">
+                         <div class="container" ng-controller="tfarController" data-ng-init="init()">
+                             <h4>Task Force Radio - Download</h4>
+                             <hr>
+                             <div class="page">
+                                 <div class="row">
+                                     <div class="col-md-10">
+                                         Downloaded eine .ts3_plugin Datei und führt diese aus.
+                                         <br>
+                                         Teamspeak muss vor der Installation geschlossen werden
+                                         <br>
+                                         <br>
+                                         Wenn der automatische Download fehlschlägt kannst du das Plugin auch im /DeinArmaDIR/@AORv2_ArtOfRp.de Ordner finden.
+                                         <br>
+                                         Diese müssen dann manuell in den Teamspeak Ordner entpackt werden.
+                                         <br>
+                                         <br>
+                                         Du brauchst Hilfe oder etwas funktioniert nicht ? Melde dich im Support!
+                                     </div>
+                                     <div class="col-md-2">
+                                         <button class="btn btn-success pull-right" tooltips tooltip-template="Teamspeak 3.1.0.1+" ng-click="initFileDownload('task_force_radio.ts3_plugin')">Plugin Download</button>
+                                     </div>
+                                 </div>
+                                 <div class="row" ng-show="fileDownloading">
+                                     <div class="col-md-12">
+                                         <div class="progress progress-striped active">
+                                             <div class="progress-bar" style="width: {{fileProgress}}%"></div>
+                                         </div>
+                                         <span class="pull-right" ng-if="fileSpeed !== 0">{{fileSpeed}} Mb/s</span>
+                                     </div>
+                                 </div>
+                                 <br>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+                 <div id="settings" class="tab-pane fade">
+                     <div class="container" ng-controller="settingsController" data-ng-init="init()">
+                         <div class="page">
+                             <div class="row">
+                                 <div class="col-md-12">
+                                     <label for="pathInput">Arma 3 Pfad</label>
+                                     <div class="input-group">
+                                         <input id="pathInput" class="form-control" type="text"
+                                                placeholder="Kein Arma Pfad gesetzt" ng-model="ArmaPath" disabled>
+                                         <span class="input-group-btn">
+                                                 <button ng-disabled="downloading" class="btn btn-primary" type="button"
+                                                         ng-click="chooseArmaPath()"><span
+                                                         class="glyphicon glyphicon-open-file"></span></button>
+                                             </span>
+                                     </div>
+                                 </div>
+                             </div>
+                             <hr>
+                             <div class="row">
+                                 <div class="col-md-4">
+                                     <div class="form-group form-inline">
+                                         <label for="splashCheck">Kein Splashscreen</label>
+                                         <span class="pull-right">
+                                                 <input id="splashCheck" type="checkbox">
+                                             </span>
+                                         <hr>
+                                         <label for="introCheck">Intro überspringen</label>
+                                         <span class="pull-right">
+                                                 <input id="introCheck" type="checkbox">
+                                             </span>
+                                         <hr>
+                                         <label for="htCheck">Hyper-Threading</label>
+                                         <span class="pull-right">
+                                                 <input id="htCheck" type="checkbox">
+                                             </span>
+                                         <hr>
+                                         <label for="windowedCheck">Fenstermodus</label>
+                                         <span class="pull-right">
+                                                 <input id="windowedCheck" type="checkbox">
+                                             </span>
+                                     </div>
+                                 </div>
+                                 <div class="col-md-8">
+                                     <div class="row">
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="memInput">Maximaler RAM</label>
+                                                 <input ng-model="mem" ng-change="saveSettings()" id="memInput"
+                                                        class="form-control" type="number">
+                                             </div>
+                                             <div class="form-group">
+                                                 <label for="vmemInput">Maximaler vRam</label>
+                                                 <input ng-model="vram" ng-change="saveSettings()" id="vmemInput"
+                                                        class="form-control" type="number">
+                                             </div>
+                                         </div>
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="cpuInput">CPU Anzahl</label>
+                                                 <input ng-model="cpu" ng-change="saveSettings()" id="cpuInput"
+                                                        class="form-control" type="number">
+                                             </div>
+                                             <div class="form-group">
+                                                 <label for="threadsInput">Extra Threads</label>
+                                                 <input ng-model="thread" ng-change="saveSettings()" id="threadsInput"
+                                                        class="form-control" type="number">
+                                             </div>
+                                         </div>
+                                     </div>
+                                     <div class="row">
+                                         <div class="col-md-12">
+                                             <div class="form-group">
+                                                 <label for="addInput">Eigene Startparameter</label>
+                                                 <input ng-model="add_params" ng-change="saveSettings()" id="addInput"
+                                                        class="form-control" type="text">
+                                             </div>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+                <div id="NEWS" class="tab-pane fade">
+                    <div id="NEWS">
+                        <div ng-controller="modController" data-ng-init="init()">
+                            <div class="item" ng-repeat="mod in mods" ng-class='{active:$first}'>
+                                <div class="panel  news-mod" >
+                            <div class="page">
+                                <div class="row">
+                                    <h4>News</h4>
+                                    <hr>
+                                    {{mod.Description}}
+                                </div>
+                            </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="faq" class="tab-pane fade">
+                    <div id="faqtab">
+                        <div class="container-faq">
+                            <h4>FAQ</h4>
+                            <div class="page">
+                                <div class="panel-group" id="faqAccordion">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading accordion-toggle question-toggle collapsed" data-toggle="collapse" data-parent="#faqAccordion" data-target="#question0">
+                                            <h4 class="panel-title">
+                                                <a href="#" class="ing">Mein Teamspeak stürzt immer ab?</a>
+                                            </h4>
+                                        </div>
+                                        <div id="question0" class="panel-collapse collapse" style="height: 0;">
+                                            <div class="panel-body">
+                                                Wir verwenden derzeit eine sich noch in der Entwicklung befindliche Version von TFAR um alle Funktionen nutzen zu können. <br>
+                                                Solltest du Probleme mit TFAR haben:
+                                                <ul>
+                                                <li>
+                                                    aktualisiere bitte dein Teamspeak und deinstalliere das TFAR Plugin
+                                                </li>
+                                                <li>
+                                                    beende dein Teamspeak und installiere das Plugin über den Launcher neu.
+                                                </li>
+                                                <li>
+                                                    öffne das ArtOfRP Modpack und lösche alle TFAR Mods, sowie die Taskforce-Radio-Pipe.
+                                                </li>
+                                                    <li>
+                                                        lade abschließend die gelöschten Dateien wieder runter und lass dein Modpack nocheinmal überprüfen.
+                                                    </li>
+                                                    <li>
+                                                      Solltest du Hilfe benötigen wende dich an den Support im <a class="txt hvr-grow" href="ts3server://ts.artofrp.de">Teamspeak</a>
+                                                  </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel panel-default ">
+                                        <div class="panel-heading accordion-toggle collapsed question-toggle" data-toggle="collapse" data-parent="#faqAccordion" data-target="#question1">
+                                            <h4 class="panel-title">
+                                                <a href="#" class="ing">Ich werde vom Server immer gekickt ?</a>
+                                            </h4>
+                                        </div>
+                                        <div id="question1" class="panel-collapse collapse" style="height: 0;">
+                                            <div class="panel-body">
+                                                Nutze den Button "Prüfen" zum Überprüfen der Mods
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading accordion-toggle collapsed question-toggle" data-toggle="collapse" data-parent="#faqAccordion" data-target="#question2">
+                                            <h4 class="panel-title">
+                                                <a href="#" class="ing">Bei mir ist der Download sehr langsam ?</a>
+                                            </h4>
+                                        </div>
+                                        <div id="question2" class="panel-collapse collapse" style="height: 0;">
+                                            <div class="panel-body">
+                                                Die Downloadgeschwindigkeit ist abhängig von:<br>
+                                                <ul>
+                                                    <li>
+                                                        Deinem Internet, mache jetzt einen <a class="txt hvr-grow" href="https://speedtest.net">Speedtest</a> um deine Internetgeschwindigkeit zu testen.
+                                                    </li>
+                                                    <li>
+                                                        Deiner Festplatte, mit einer SSD kannst du oft deutlich schnellere Datenübertragungen erreichen als beispielsweise mit einer HDD.
+                                                    </li>
+                                                </ul>
+                                                <br>
+                                                Sollte keiner dieser Punkte auf dein Problem zutreffen, wende dich bitte direkt an <a class="txt hvr-grow" href="http://steamcommunity.com/id/XedonTV/">mich</a>.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading accordion-toggle collapsed question-toggle" data-toggle="collapse" data-parent="#faqAccordion" data-target="#question4">
+                                            <h4 class="panel-title">
+                                                <a href="#" class="ing">Du hast ein Problem / Bug im Launcher ?</a>
+                                            </h4>
+                                        </div>
+                                        <div id="question4" class="panel-collapse collapse" style="height: 0;">
+                                            <div class="panel-body">
+                                                Du hast folgende Möglichkeiten um einen Bug zu melden:
+                                                <ul>
+                                                    <li><a class="txt hvr-grow" href="http://steamcommunity.com/id/XedonTV/">XedonDEV [Entwickler]</a></li>
+                                                    <li><a class="txt hvr-grow" href="http://www.viruzmedia.de">ViruzMedia [Designer]</a></li>
+                                                    <li><a class="txt hvr-grow" href="https://artofrp.de/">Webseite</a></li>
+                                                    <li><a class="txt hvr-grow" href="ts3server://ts.artofrp.de/?port=9987">Teamspeak</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <div id="about" ng-controller="aboutController" class="tab-pane fade">
+                     <div class="row">
+                         <div class="col-md-3 centered">
+                             <i class="fa fa-microphone fa-5x" style="color:#358bff" aria-hidden="true"></i>
+                             <a class="no-deco" href="ts3server://ts.artofrp.de/?port=9987">
+                             </a>
+                             <br>
+                             <h4><a class="txt hvr-grow" href="ts3server://ts.artofrp.de/?port=9987">Teamspeak 3</a></h4>
+                         </div>
+                         <div class="col-md-3 centered">
+                             <i class="fa fa-comments fa-5x" style="color:#358bff" aria-hidden="true"></i>
+                             <a class="no-deco" href="https://forum.artofrp.de/">
+                             </a>
+                             <br>
+                             <h4><a class="txt hvr-grow" href="https://forum.artofrp.de/">Forum</a></h4>
+                         </div>
+                         <div class="col-md-3 centered">
+                             <i class="fa fa-globe fa-5x" style="color:#358bff" aria-hidden="true"></i>
+                             <a class="no-deco" href="https://artofrp.de/">
+                             </a>
+                             <br>
+                             <h4><a class="txt hvr-grow" href="https://artofrp.de/">Website</a></h4>
+                         </div>
+                         <div class="col-md-3 centered">
+                             <i class="fa fa-github fa-5x" style="color:#358bff" aria-hidden="true"></i>
+                             <a class="no-deco" href="https://github.com/Kaibu">
+                             </a>
+                             <br>
+                             <h4><a class="txt hvr-grow" href="https://github.com/XedonDEV">Entwickler</a></h4>
+                         </div>
+                     </div>
+                     <hr>
+                     <div class="centered">
+                         <div class="footer-txt">
+                             <p href="http://steamcommunity.com/id/XedonTV/" class="hvr-grow"><em>Developed by XedonDEV & Kaibu</em></p><br>
+                             <p href="http://www.viruzmedia.de" class="hvr-grow"><em>Designed by ViruzMedia</em></p><br>
+                             <h4>Version: {{version}}</h4>
+                             <br>
+                             <a href="https://www.tsviewer.com/index.php?page=ts_viewer&ID=1097236"><img src="https://www.tsviewer.com/promotion/dynamic_sig/sig.php/clan468x60_varig/1097236.png"></a>
+                             <br>
+                             <br>
+                             <a href="http://www.gametracker.com/server_info/78.31.67.150:2302/" target="_blank"><img src="http://cache.gametracker.com/server_info/78.31.67.150:2302/b_560_95_1.png" border="0" width="560" height="95" alt=""/></a>
+                         </div>
+                     </div>
+                 </div>
+         </div>
+
+     </div>
+ </div>
+ </body>
+ <script>
+   $(document).on('click', 'a[href^="htt"]', function (event) {
+     if (this.href != "") {
+       event.preventDefault();
+       shell.openExternal(this.href);
+     }
+   });
+
+   $(document).ready(function () {
+     $('input').iCheck({
+       checkboxClass: 'icheckbox_minimal',
+       radioClass: 'iradio_minimal',
+       increaseArea: '20%' // optional
+     });
+     appLoaded()
+   });
+ </script>
+ </html>
