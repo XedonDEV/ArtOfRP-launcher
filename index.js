@@ -589,6 +589,145 @@ App.controller('aboutController', ['$scope', function ($scope) {
   $scope.version = app.getVersion()
 }])
 
+App.controller('serverController', ['$scope', '$sce', function ($scope, $sce) {
+    $scope.redrawChart = function (server) {
+        var data = {
+            labels: [
+                ' Zivilisten',
+                ' Polizisten',
+                ' Medics',
+                ' ADAC'
+            ],
+            datasets: [
+                {
+                    data: [server.Civilians, server.Cops, server.Medics, server.Adac],
+                    backgroundColor: [
+                        '#8B008B',
+                        '#0000CD',
+                        '#228B22',
+                        '#C00100'
+                    ]
+                }]
+        }
+
+        var xhx = $('#serverChart' + server.Id)
+        var chart = new Chart(xhx, { // eslint-disable-line
+            type: 'pie',
+            data: data,
+            options: {
+                responsive: false,
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        })
+    }
+
+    $scope.init = function () {
+        $scope.loading = true
+        getServers()
+        getNotification()
+    }
+
+    $scope.showTab = function (tabindex) {
+        $('.serverTab').removeClass('active')
+        $('.serverPane').removeClass('active')
+        $('#serverTab' + tabindex).addClass('active')
+        $('#serverPane' + tabindex).addClass('active')
+    }
+
+    ipcRenderer.on('to-app', function (event, args) {
+        switch (args.type) {
+            case 'servers-callback':
+                $scope.servers = args.data.data
+                $scope.loading = false
+                $scope.$apply()
+                if (typeof $scope.servers !== 'undefined') {
+                    for (var i = 0; i < $scope.servers.length; i++) {
+                        $scope.servers[i].DescriptionHTML = $sce.trustAsHtml($scope.servers[i].Description)
+                        $scope.redrawChart($scope.servers[i])
+                        $('#playerScroll' + $scope.servers[i].Id).perfectScrollbar()
+                    }
+                }
+                break
+        }
+    })
+
+    $scope.joinServer = function (server) {
+        if (server.appId === 107410) {
+            storage.get('settings', function (err, data) {
+                if (err) throw err
+
+                var params = []
+
+                params.push('-noLauncher')
+                params.push('-useBE')
+                params.push('-connect=' + server.IpAddress)
+                params.push('-port=' + server.Port)
+                params.push('-mod=' + server.StartParameters)
+                params.push('-password=' + server.ServerPassword)
+
+                if (data.splash) {
+                    params.push('-nosplash')
+                }
+                if (data.intro) {
+                    params.push('-skipIntro')
+                }
+                if (data.ht) {
+                    params.push('-enableHT')
+                }
+                if (data.windowed) {
+                    params.push('-window')
+                }
+
+                if (data.mem != null && data.mem !== '' && typeof data.mem !== 'undefined') {
+                    params.push('-maxMem=' + data.mem)
+                }
+                if (data.vram != null && data.vram !== '' && typeof data.vram !== 'undefined') {
+                    params.push('-maxVRAM=' + data.vram)
+                }
+                if (data.cpu != null && data.cpu !== '' && typeof data.cpu !== 'undefined') {
+                    params.push('-cpuCount=' + data.cpu)
+                }
+                if (data.thread != null && data.thread !== '' && typeof data.thread !== 'undefined') {
+                    params.push('-exThreads=' + data.thread)
+                }
+                if (data.add_params != null && data.add_params !== '' && typeof data.add_params !== 'undefined') {
+                    params.push(data.add_params)
+                }
+
+                spawnNotification('Arma wird gestartet...')
+                child.spawn((data.armapath + '\\arma3launcher.exe'), params, [])
+            })
+        } else {
+            spawnNotification('Das Spiel wird gestartet...')
+            shell.openExternal('steam://connect/' + server.IpAddress + ':' + server.Port)
+        }
+    }
+
+    $scope.pingServer = function (server) {
+        exec('mstsc /v ' + server.IpAddress, function () {
+        })
+        ps.lookup({
+            command: 'mstsc'
+        }, function (err, resultList) {
+            if (err) throw err
+            resultList.forEach(function (process) {
+                if (process) {
+                    ps.kill(process.pid, function (err) {
+                        if (err) {
+                            throw err
+                        } else {
+                            console.log('Process %s has been killed!', process.pid)
+                        }
+                    })
+                }
+            })
+        })
+    }
+}])
+
+
 App.controller('tfarController', ['$scope', '$rootScope', function ($scope) {
     $scope.initFileDownload = function (file) {
         if (!$scope.fileDownloading) {
@@ -643,6 +782,16 @@ function getMods () {
     url: APIBaseURL + APIModsURL,
     callBackTarget: 'to-app'
   })
+}
+
+
+function getServers () {
+    ipcRenderer.send('to-web', {
+        type: 'get-url',
+        callback: 'servers-callback',
+        url: APIBaseURL + APIServersURL,
+        callBackTarget: 'to-app'
+    })
 }
 
 function toGB (val) {

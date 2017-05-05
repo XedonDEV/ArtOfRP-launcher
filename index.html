@@ -33,6 +33,12 @@
     <!-- include the core styles -->
     <link rel="stylesheet" href="resources/css/alertify.core.css" />
 
+    <!-- smoothiecharts -->
+    <script src="node_modules/smoothie/smoothie.js"></script>
+
+    <!-- chartjs -->
+    <script src="node_modules/chart.js/dist/Chart.min.js"></script>
+
     <!-- perfect-scrollbar -->
     <script src="node_modules/perfect-scrollbar/dist/js/perfect-scrollbar.jquery.min.js"></script>
     <link rel="stylesheet" href="node_modules/perfect-scrollbar/dist/css/perfect-scrollbar.min.css">
@@ -42,6 +48,7 @@
 
     <!-- custom css/js -->
     <link rel="stylesheet" href="resources/css/custom.css">
+
     <!-- HoverCSS css/js -->
     <link rel="stylesheet" href="resources/css/hover.css">
     <link rel="stylesheet" href="resources/css/hover-min.css">
@@ -96,15 +103,13 @@
                 <br>
                 <br>
                 <li class="active"><a data-toggle="tab" href="#mods"><i class="fa fa-code fa-2x" aria-hidden="true"></i></a></li><br>
+            <!--<li><a id="server" data-toggle="tab" href="#Server"><i class="fa fa-server fa-2x" aria-hidden="true"></i></a></li><br>-->
                 <li><a id="tfar" data-toggle="tab" href="#TFAR"><i class="fa fa-microphone fa-2x" aria-hidden="true"></i></a></li><br>
                 <li><a id="settingsTab" data-toggle="tab" href="#settings"><i class="fa fa-cogs fa-2x" aria-hidden="true"></i></a></li><br>
-                <li><a id="news" data-toggle="tab" href="#NEWS"><i class="fa fa-newspaper-o fa-2x" aria-hidden="true"></i></a></li><br>
                 <li><a id="faqtab" data-toggle="tab" href="#faq"><i class="fa fa-question fa-2x" aria-hidden="true"></i></a></li><br>
                 <li><a data-toggle="tab" href="#about"><i class="fa fa-info-circle fa-2x" aria-hidden="true"></i></a></li>
             </ul>
             </div>
-            <br>
-            <br>
             <br>
             <div class="tab-content main-content">
                 <div id="mods" class="tab-pane fade in active">
@@ -128,6 +133,8 @@
                                                     </div>
                                                     <div class="panel-body">
                                                         <img ng-src="{{mod.ImageUrl}}" class="modImg img-thumbnail">
+                                                        <hr>
+                                                        {{mod.Description}}
                                                     </div>
                                                     <div class="panel-footer">
                                                         <div class="btn-group btn-group-sm">
@@ -192,6 +199,8 @@
                                 Abbrechen <i class="fa fa-times"></i></button>
                         </div>
                     </div>
+                    <br>
+                    <br>
             <div class="pg-bars">
                     <div class="col-md-12">
                         <span class="label label-primary label-large" ng-if="fileName !== ''">{{fileName}}</span>
@@ -209,43 +218,122 @@
                  <br>
                  <br>
                  <br>
-                 <div id="TFAR" class="tab-pane fade">
-                     <div id="tfar">
-                         <div class="container" ng-controller="tfarController" data-ng-init="init()">
-                             <h4>Task Force Radio - Download</h4>
-                             <hr>
-                             <div class="page">
-                                 <div class="row">
-                                     <div class="col-md-10">
-                                         Downloaded eine .ts3_plugin Datei und führt diese aus.
-                                         <br>
-                                         Teamspeak muss vor der Installation geschlossen werden
-                                         <br>
-                                         <br>
-                                         Wenn der automatische Download fehlschlägt kannst du das Plugin auch im /DeinArmaDIR/@AORv2_ArtOfRp.de Ordner finden.
-                                         <br>
-                                         Diese müssen dann manuell in den Teamspeak Ordner entpackt werden.
-                                         <br>
-                                         <br>
-                                         Du brauchst Hilfe oder etwas funktioniert nicht ? Melde dich im Support!
+                <div id="TFAR" class="tab-pane fade">
+                    <div id="tfar">
+                        <div class="container" ng-controller="tfarController" data-ng-init="init()">
+                            <h4>Task Force Radio - Download</h4>
+                            <hr>
+                            <div class="page">
+                                <div class="row">
+                                    <div class="col-md-10">
+                                        Downloaded eine .ts3_plugin Datei und führt diese aus.
+                                        <br>
+                                        Teamspeak muss vor der Installation geschlossen werden
+                                        <br>
+                                        <br>
+                                        Wenn der automatische Download fehlschlägt kannst du das Plugin auch im /DeinArmaDIR/@AORv2_ArtOfRp.de Ordner finden.
+                                        <br>
+                                        Diese müssen dann manuell in den Teamspeak Ordner entpackt werden.
+                                        <br>
+                                        <br>
+                                        Du brauchst Hilfe oder etwas funktioniert nicht ? Melde dich im Support!
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-success pull-right" tooltips tooltip-template="Teamspeak 3.1.0.1+" ng-click="initFileDownload('task_force_radio.ts3_plugin')">Plugin Download</button>
+                                    </div>
+                                </div>
+                                <div class="row" ng-show="fileDownloading">
+                                    <div class="col-md-12">
+                                        <div class="progress progress-striped active">
+                                            <div class="progress-bar" style="width: {{fileProgress}}%"></div>
+                                        </div>
+                                        <span class="pull-right" ng-if="fileSpeed !== 0">{{fileSpeed}} Mb/s</span>
+                                    </div>
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="Server" class="tab-pane fade">
+                     <div id="Server">
+                         <div class="container">
+                             <div class="row" ng-controller="serverController" data-ng-init="init()">
+                                 <h3>ArtOfRP Server</h3>
+                                 <hr>
+                                 <div class="page">
+                                     <div style="text-align: center" ng-show="loading">
+                                         <img src="resources/loading/ellipsis.svg"/>
                                      </div>
-                                     <div class="col-md-2">
-                                         <button class="btn btn-success pull-right" tooltips tooltip-template="Teamspeak 3.1.0.1+" ng-click="initFileDownload('task_force_radio.ts3_plugin')">Plugin Download</button>
-                                     </div>
-                                 </div>
-                                 <div class="row" ng-show="fileDownloading">
-                                     <div class="col-md-12">
-                                         <div class="progress progress-striped active">
-                                             <div class="progress-bar" style="width: {{fileProgress}}%"></div>
+                                     <ul class="nav nav-tabs">
+                                         <li  ng-class={active:(0==$index)} class="serverTab" id="serverTab{{server.Id}}" ng-repeat="server in servers">
+                                             <a ng-click="showTab(server.Id)">{{server.Servername}} <span class="label label-success">{{server.Playercount}}/{{server.Slots}}</span></a>
+                                         </li>
+                                     </ul>
+                                     <div class="tab-content">
+                                         <div  ng-class={active:(0==$index)} id="serverPane{{server.Id}}" class="tab-pane fade in serverPane" ng-repeat="server in servers">
+                                             <br>
+                                             <br>
+                                             <div class="row">
+                                                 <div class="col-md-4">
+                                                     <canvas ng-show="{{server.appId === 107410 && server.Gamemode === 1}}" id="serverChart{{server.Id}}" width="387" height="387"/>
+                                                 </div>
+                                                 <div class="col-md-4">
+                                                     <div ng-show="{{server.Playercount != 0}}">
+                                                         <h5>Spieler <span class="pull-right">{{server.Playercount}}/{{server.Slots}}</span></h5>
+                                                         <ul id="playerScroll{{server.Id}}" class="list-group list-group-unbordered margin-none" style="height: 350px;position: relative;">
+                                                             <li class="list-group-item" ng-repeat="player in server.Players">
+                                                                 <b>{{player}}</b>
+                                                             </li>
+                                                         </ul>
+                                                     </div>
+                                                 </div>
+                                                 <div class="col-md-4">
+                                                     <h5>Daten</h5>
+                                                     <ul class="list-group list-group-unbordered margin-none">
+                                                         <li class="list-group-item" ng-show="{{server.appId === 107410 && server.Gamemode === 1}}">
+                                                             <b>Zivilisten</b> <a class="pull-right"><span class="label label-civ">{{server.Civilians}}</span></a>
+                                                         </li>
+                                                         <li class="list-group-item" ng-show="{{server.appId === 107410 && server.Gamemode === 1}}">
+                                                             <b>Polizisten</b> <a class="pull-right"><span class="label label-cop">{{server.Cops}}</span></a>
+                                                         </li>
+                                                         <li class="list-group-item" ng-show="{{server.appId === 107410 && server.Gamemode === 1}}">
+                                                             <b>Medics</b> <a class="pull-right"><span class="label label-medic">{{server.Medics}}</span></a>
+                                                         </li>
+                                                         <li class="list-group-item" ng-show="{{server.appId === 107410 && server.Gamemode === 1}}">
+                                                             <b>Adac</b> <a class="pull-right"><span class="label label-adac">{{server.Adac}}</span></a>
+                                                         </li>
+                                                         <li class="list-group-item" ng-show="{{server.appId === 107410}}">
+                                                             <b>IP:Port</b> <a class="pull-right">{{server.IpAddress}}:{{server.Port}}</a>
+                                                         </li>
+                                                         <li class="list-group-item" ng-show="server.StartParameters !== '' && server.StartParameters.length < 20">
+                                                             <b>Parameter</b> <a class="pull-right">{{server.StartParameters}}</a>
+                                                         </li>
+                                                         <li class="list-group-item" ng-show="server.ServerPassword !== ''">
+                                                             <b>Passwort</b> <a class="pull-right">{{server.ServerPassword}}</a>
+                                                         </li>
+                                                         <li class="list-group-item" >
+                                                         </li>
+                                                         <b ng-show="server.Description !== '' && server.Description !== null">Informationen</b>
+                                                         <li class="list-group-item" ng-show="server.Description !== '' && server.Description !== null" ng-bind-html="server.DescriptionHTML">
+                                                         </li>
+                                                         <li class="list-group-item" ng-show="server.StartParameters !== '' && server.StartParameters.length >= 20 && server.StartParameters.length <= 40">
+                                                             <b>Parameter</b>
+                                                         </li>
+                                                         <li class="list-group-item" ng-show="server.StartParameters !== '' && server.StartParameters.length >= 20 && server.StartParameters.length <= 40">
+                                                             <a>{{server.StartParameters}}</a>
+                                                         </li>
+                                                     </ul>
+                                                     <button class="btn btn-success pull-right btn-sm" style="margin-top: 10px" ng-click="joinServer(server)"><i class="fa fa-play" aria-hidden="true"></i> Joinen</button>
+                                                 </div>
+                                             </div>
                                          </div>
-                                         <span class="pull-right" ng-if="fileSpeed !== 0">{{fileSpeed}} Mb/s</span>
                                      </div>
                                  </div>
-                                 <br>
                              </div>
                          </div>
                      </div>
-                 </div>
+                </div>
                  <div id="settings" class="tab-pane fade">
                      <div class="container" ng-controller="settingsController" data-ng-init="init()">
                          <div class="page">
@@ -329,23 +417,6 @@
                          </div>
                      </div>
                  </div>
-                <div id="NEWS" class="tab-pane fade">
-                    <div id="NEWS">
-                        <div ng-controller="modController" data-ng-init="init()">
-                            <div class="item" ng-repeat="mod in mods" ng-class='{active:$first}'>
-                                <div class="panel  news-mod" >
-                            <div class="page">
-                                <div class="row">
-                                    <h4>News</h4>
-                                    <hr>
-                                    {{mod.Description}}
-                                </div>
-                            </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div id="faq" class="tab-pane fade">
                     <div id="faqtab">
                         <div class="container-faq">
