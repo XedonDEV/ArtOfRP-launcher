@@ -1,6 +1,6 @@
 {
   "name": "ArtOfRP",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "ArtOfRP-Launcher",
   "homepage": "https://github.com/XedonDEV",
   "author": "XedonDEV",
@@ -54,6 +54,7 @@
     "angular": "^1.6.0",
     "angular-tooltips": "^1.1.8",
     "bootstrap": "^3.3.7",
+    "chart.js": "^2.6.0",
     "electron-json-storage": "^2.1.0",
     "electron-squirrel-startup": "1.0.0",
     "font-awesome": "^4.7.0",

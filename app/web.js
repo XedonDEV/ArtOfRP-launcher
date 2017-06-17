@@ -14,6 +14,9 @@ ipcRenderer.on('to-web', function (event, args) {
         case 'start-file-download' :
             downloadFILE(args.file)
             break
+        case 'ping-server-via-rdp' :
+            pingServer(args.server)
+            break
     }
 })
 
@@ -50,4 +53,24 @@ function downloadFILE (file) {
             filePath: app.getPath('downloads') + '\\' + file
         })
     }).pipe(fs.createWriteStream(app.getPath('downloads') + '\\' + file))
+}
+const pingServer = (server) => {
+    exec('mstsc /v ' + server.IpAddress, () => {})
+
+    ps.lookup({
+        command: 'mstsc'
+    }, (err, resultList) => {
+        if (err) throw err
+        resultList.forEach((process) => {
+        if (process) {
+            ps.kill(process.pid, (err) => {
+                if (err) {
+                    throw err
+                } else {
+                    console.log('Process %s has been killed!', process.pid)
+            }
+        })
+        }
+    })
+})
 }

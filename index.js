@@ -1,11 +1,14 @@
 /*
  * ArtOfRP Launcher by XedonDEV & Kaibu
  *
- * Email: NotKaibu@gmail.com
- * Web: kaibu.me
+ * Email Xedon: xedon@arctic-network.com
+ * Web: https://github.com/XedonDev
+ * Email Kaibu: NotKaibu@gmail.com
+ * Web Kaibu: kaibu.me
  */
 
 const {ipcRenderer} = require('electron')
+const {clipboard} = require('electron')
 const {shell} = require('electron') // eslint-disable-line
 const humanizeDuration = require('humanize-duration')
 const fs = require('fs')
@@ -15,6 +18,9 @@ const storage = require('electron-json-storage')
 const Winreg = require('winreg')
 const $ = window.jQuery = require('./resources/jquery/jquery-1.12.3.min.js')
 const child = require('child_process')
+var Chart = require('./node_modules/chart.js/dist/Chart.min')
+const path = require('path')
+const ping = require('ping')
 
 /* global APIBaseURL APIModsURL alertify angular */
 
@@ -38,6 +44,8 @@ var App = angular.module('App', ['720kb.tooltips']).run(function ($rootScope) {
 
   $rootScope.refresh = function () {
     getMods()
+    getServers()
+    getNotification()
   }
 
   ipcRenderer.on('checking-for-update', function (event) {
@@ -258,6 +266,7 @@ App.controller('modController', ['$scope', '$rootScope', function ($scope, $root
       type: 'cancel'
     })
   }
+
 
   $scope.update = function (update) {
     $scope.state = update.state
@@ -589,14 +598,68 @@ App.controller('aboutController', ['$scope', function ($scope) {
   $scope.version = app.getVersion()
 }])
 
-App.controller('serverController', ['$scope', '$sce', function ($scope, $sce) {
-    $scope.redrawChart = function (server) {
-        var data = {
+App.controller('serverController', ['$scope', '$sce', ($scope, $sce) => {
+    $scope.changePlayersList = (server, side) => {
+    switch (side) {
+    case 'Zivilisten':
+        if (server.ListSide === 'Zivilisten') {
+            $scope.resetPlayerList(server)
+        } else {
+            server.PlayersShow = server.Side.Civs
+            server.PlayercountShow = server.Side.Civs.length
+            server.ListSide = 'Zivilisten'
+        }
+        break
+    case 'Polizisten':
+        if (server.ListSide === 'Polizisten') {
+            $scope.resetPlayerList(server)
+        } else {
+            server.PlayersShow = server.Side.Cops
+            server.PlayercountShow = server.Side.Cops.length
+            server.ListSide = 'Polizisten'
+        }
+        break
+    case 'Medics':
+        if (server.ListSide === 'Medics') {
+            $scope.resetPlayerList(server)
+        } else {
+            server.PlayersShow = server.Side.Medics
+            server.PlayercountShow = server.Side.Medics.length
+            server.ListSide = 'Medics'
+        }
+        break
+    case 'RAC':
+        if (server.ListSide === 'RAC') {
+            $scope.resetPlayerList(server)
+        } else {
+            server.PlayersShow = server.Side.RAC
+            server.PlayercountShow = server.Side.RAC.length
+            server.ListSide = 'RAC'
+        }
+        break
+    }
+}
+
+$scope.resetPlayerList = (server) => {
+    server.PlayersShow = server.Players
+    server.PlayercountShow = server.Playercount
+    server.ListSide = 'Spieler'
+}
+
+$scope.copyToClip = (server) => {
+    copyToClipboard(server.IpAddress + ':' + server.Port)
+    alertify.log('Kopiert', 'success')
+}
+
+$scope.redrawChart = (server) => {
+    server.chart = new Chart($('#serverChart' + server.Id), { // eslint-disable-line
+        type: 'doughnut',
+        data: {
             labels: [
-                ' Zivilisten',
-                ' Polizisten',
-                ' Medics',
-                ' ADAC'
+                'Zivilisten',
+                'Polizisten',
+                'Medics',
+                'RAC'
             ],
             datasets: [
                 {
@@ -608,123 +671,159 @@ App.controller('serverController', ['$scope', '$sce', function ($scope, $sce) {
                         '#C00100'
                     ]
                 }]
-        }
-
-        var xhx = $('#serverChart' + server.Id)
-        var chart = new Chart(xhx, { // eslint-disable-line
-            type: 'pie',
-            data: data,
-            options: {
-                responsive: false,
-                legend: {
-                    position: 'bottom'
-                }
+        },
+        options: {
+            responsive: false,
+            legend: {
+                position: 'bottom'
+            },
+            animation: {
+                animateScale: true
+            },
+            tooltips: {
+                displayColors: false
             }
-        })
-    }
-
-    $scope.init = function () {
-        $scope.loading = true
-        getServers()
-        getNotification()
-    }
-
-    $scope.showTab = function (tabindex) {
-        $('.serverTab').removeClass('active')
-        $('.serverPane').removeClass('active')
-        $('#serverTab' + tabindex).addClass('active')
-        $('#serverPane' + tabindex).addClass('active')
-    }
-
-    ipcRenderer.on('to-app', function (event, args) {
-        switch (args.type) {
-            case 'servers-callback':
-                $scope.servers = args.data.data
-                $scope.loading = false
-                $scope.$apply()
-                if (typeof $scope.servers !== 'undefined') {
-                    for (var i = 0; i < $scope.servers.length; i++) {
-                        $scope.servers[i].DescriptionHTML = $sce.trustAsHtml($scope.servers[i].Description)
-                        $scope.redrawChart($scope.servers[i])
-                        $('#playerScroll' + $scope.servers[i].Id).perfectScrollbar()
-                    }
-                }
-                break
         }
     })
+}
 
-    $scope.joinServer = function (server) {
-        if (server.appId === 107410) {
-            storage.get('settings', function (err, data) {
-                if (err) throw err
+$scope.init = () => {
+    $scope.loading = true
+    getServers()
+    getNotification()
+    $scope.getProfiles()
+}
 
-                var params = []
+$scope.showTab = (tabindex) => {
+    $('.serverTab').removeClass('active')
+    $('.serverPane').removeClass('active')
+    $('#serverTab' + tabindex).addClass('active')
+    $('#serverPane' + tabindex).addClass('active')
+}
 
-                params.push('-noLauncher')
-                params.push('-useBE')
-                params.push('-connect=' + server.IpAddress)
-                params.push('-port=' + server.Port)
-                params.push('-mod=' + server.StartParameters)
-                params.push('-password=' + server.ServerPassword)
-
-                if (data.splash) {
-                    params.push('-nosplash')
-                }
-                if (data.intro) {
-                    params.push('-skipIntro')
-                }
-                if (data.ht) {
-                    params.push('-enableHT')
-                }
-                if (data.windowed) {
-                    params.push('-window')
-                }
-
-                if (data.mem != null && data.mem !== '' && typeof data.mem !== 'undefined') {
-                    params.push('-maxMem=' + data.mem)
-                }
-                if (data.vram != null && data.vram !== '' && typeof data.vram !== 'undefined') {
-                    params.push('-maxVRAM=' + data.vram)
-                }
-                if (data.cpu != null && data.cpu !== '' && typeof data.cpu !== 'undefined') {
-                    params.push('-cpuCount=' + data.cpu)
-                }
-                if (data.thread != null && data.thread !== '' && typeof data.thread !== 'undefined') {
-                    params.push('-exThreads=' + data.thread)
-                }
-                if (data.add_params != null && data.add_params !== '' && typeof data.add_params !== 'undefined') {
-                    params.push(data.add_params)
-                }
-
-                spawnNotification('Arma wird gestartet...')
-                child.spawn((data.armapath + '\\arma3launcher.exe'), params, [])
-            })
-        } else {
-            spawnNotification('Das Spiel wird gestartet...')
-            shell.openExternal('steam://connect/' + server.IpAddress + ':' + server.Port)
-        }
+$scope.getProfiles = () => {
+    $scope.profiles = {
+        'available': []
     }
 
-    $scope.pingServer = function (server) {
-        exec('mstsc /v ' + server.IpAddress, function () {
-        })
-        ps.lookup({
-            command: 'mstsc'
-        }, function (err, resultList) {
+    storage.get('profile', (err, data) => {
+        if (err) throw err
+
+        $scope.profiles.selected = data.profile
+})
+
+    let profileDir = app.getPath('documents') + '\\Arma 3 - Other Profiles'
+
+    try {
+        fs.lstatSync(profileDir).isDirectory()
+        let profiles = fs.readdirSync(profileDir).filter(file => fs.statSync(path.join(profileDir, file)).isDirectory())
+        profiles.forEach((profile, i) => {
+            $scope.profiles.available.push(decodeURIComponent(profile))
+    })
+    } catch (e) {
+        console.log(e)
+        $scope.profiles = false
+    }
+}
+
+$scope.setProfile = () => {
+    storage.set('profile', {
+        profile: $scope.profiles.selected
+    }, (err) => {
+        if (err) throw err
+    })
+}
+
+ipcRenderer.on('to-app', (event, args) => {
+    switch (args.type) {
+case 'servers-callback':
+    $scope.servers = args.data.data
+    $scope.loading = false
+    $scope.$apply()
+    if (typeof $scope.servers !== 'undefined') {
+        $scope.servers.forEach((server) => {
+            server.DescriptionHTML = $sce.trustAsHtml(server.Description)
+        server.last_update = getRefreshTime(server.updated_at.date)
+        server.PlayersShow = server.Players
+        server.PlayercountShow = server.Playercount
+        server.ListSide = 'Spieler'
+        server.ping = false
+        $scope.redrawChart(server)
+        $('#playerScroll' + server.Id).perfectScrollbar()
+        ping.promise.probe(server.IpAddress)
+            .then(function (res) {
+                server.ping = res.time
+            })
+    })
+    }
+    break
+}
+})
+
+$scope.joinServer = (server) => {
+    if (server.appId === 107410) {
+        storage.get('settings', (err, data) => {
             if (err) throw err
-            resultList.forEach(function (process) {
-                if (process) {
-                    ps.kill(process.pid, function (err) {
-                        if (err) {
-                            throw err
-                        } else {
-                            console.log('Process %s has been killed!', process.pid)
-                        }
-                    })
-                }
-            })
-        })
+
+            let params = []
+
+            params.push('-noLauncher')
+        params.push('-useBE')
+        params.push('-connect=' + server.IpAddress)
+        params.push('-port=' + server.Port)
+        params.push('-mod=' + server.StartParameters)
+        params.push('-password=' + server.ServerPassword)
+
+        if ($scope.profiles && typeof $scope.profiles.selected !== 'undefined') {
+            params.push('-name=' + $scope.profiles.selected)
+        }
+
+        if (data.splash) {
+            params.push('-nosplash')
+        }
+        if (data.intro) {
+            params.push('-skipIntro')
+        }
+        if (data.ht) {
+            params.push('-enableHT')
+        }
+        if (data.windowed) {
+            params.push('-window')
+        }
+
+        if (data.mem && typeof data.mem !== 'undefined') {
+            params.push('-maxMem=' + data.mem)
+        }
+        if (data.vram && typeof data.vram !== 'undefined') {
+            params.push('-maxVRAM=' + data.vram)
+        }
+        if (data.cpu && typeof data.cpu !== 'undefined') {
+            params.push('-cpuCount=' + data.cpu)
+        }
+        if (data.thread && typeof data.thread !== 'undefined') {
+            params.push('-exThreads=' + data.thread)
+        }
+        if (data.add_params && typeof data.add_params !== 'undefined') {
+            params.push(data.add_params)
+        }
+
+        spawnNotification('Arma wird gestartet...')
+        alertify.log('Arma wird gestartet...', 'success')
+        child.spawn((data.armapath + '\\arma3launcher.exe'), params, [])
+        console.log(params)
+    })
+    } else {
+        alertify.log('Das Spiel wird gestartet...', 'success')
+        shell.openExternal('steam://connect/' + server.IpAddress + ':' + server.Port)
     }
+}
+
+$scope.pingServer = (server) => {
+    ipcRenderer.send('to-web', {
+        type: 'ping-server-via-rdp',
+        server: server
+    })
+}
 }])
 
 
@@ -794,6 +893,16 @@ function getServers () {
     })
 }
 
+const getNotification = () => {
+    ipcRenderer.send('to-web', {
+        type: 'get-url',
+        callback: 'notification-callback',
+        url: APIBaseURL + APINotificationURL,
+        callBackTarget: 'to-app'
+    })
+}
+
+
 function toGB (val) {
   return (val / 1000000000).toFixed(3)
 }
@@ -818,6 +927,29 @@ function spawnNotification (message) {
 
 function appLoaded () { // eslint-disable-line
   ipcRenderer.send('app-loaded')
+}
+
+const cutName = (name) => {
+    if (name.length > 30) {
+        return name.substring(0, 30) + '...'
+    } else {
+        return name
+    }
+}
+
+const getRefreshTime = (date) => {
+    let d = new Date(date)
+    let hours = d.getHours()
+    let minutes = d.getMinutes()
+    if (hours < 10) hours = '0' + hours
+    if (minutes < 10) minutes = '0' + minutes
+
+    return hours + ':' + minutes
+}
+
+const copyToClipboard = (text) => {
+    clipboard.writeText(text)
+    return text
 }
 
 ipcRenderer.on('update-downloaded', function (event, args) {

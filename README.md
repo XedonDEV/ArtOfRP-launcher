@@ -22,6 +22,12 @@ Du willst deinen Teil zur Entwicklung des Launchers beitragen ?
 
 Dann Fork dir dieses Repository und erstelle einen Pull Request mit deinen Änderungen.
 
+## API und Panel
+
+[Hier](https://github.com/XedonDEV/ArtOfRP-backend) zum Repo.
+
+[Hier](https://github.com/Kaibu) zum Entwickler
+
 ## license
 
 The ArtOfRP Launcher is licensed under the [GNU General Public License version 3](https://opensource.org/licenses/GPL-3.0)
