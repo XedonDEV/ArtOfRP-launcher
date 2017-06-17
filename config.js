@@ -2,7 +2,7 @@
     Web request URL's
 */
 
-var APIBaseURL = 'https://api.realliferpg.de/v1/'
+var APIBaseURL = 'https://api3.arctic-network.com/v1/'
 
 var APIModsURL = 'mods'
 
