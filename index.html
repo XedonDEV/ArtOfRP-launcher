@@ -420,6 +420,14 @@
                                              </div>
                                          </div>
                                      </div>
+                                     <div class="row" ng-controller="serverController" data-ng-init="init()">
+                                         <div class="col-md-12">
+                                             <div class="form-group">
+                                                 <label for="addInput">Arma3 - Profil</label>
+                                                 <select class="form-control" ng-model="profiles.selected" ng-change="setProfile()" ng-options="profile for profile in profiles.available"></select>
+                                             </div>
+                                         </div>
+                                     </div>
                                  </div>
                              </div>
                          </div>
