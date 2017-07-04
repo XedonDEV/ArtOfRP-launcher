@@ -66,6 +66,13 @@ var App = angular.module('App', ['720kb.tooltips']).run(function ($rootScope) {
 })
 
 App.controller('modController', ['$scope', '$rootScope', function ($scope, $rootScope) {
+  $scope.getprofile = () => {
+        $scope.loading = true
+        getServers()
+        getNotification()
+        $scope.getProfiles()
+    }
+
   $scope.state = 'Gestoppt'
   $scope.hint = 'Inaktiv'
   $rootScope.downloading = false
@@ -289,6 +296,39 @@ App.controller('modController', ['$scope', '$rootScope', function ($scope, $root
       })
     }, true)
 
+    $scope.getProfiles = () => {
+        $scope.profiles = {
+            'available': []
+        }
+
+        storage.get('profile', (err, data) => {
+            if (err) throw err
+
+            $scope.profiles.selected = data.profile
+    })
+
+        let profileDir = app.getPath('documents') + '\\Arma 3 - Other Profiles'
+
+        try {
+            fs.lstatSync(profileDir).isDirectory()
+            let profiles = fs.readdirSync(profileDir).filter(file => fs.statSync(path.join(profileDir, file)).isDirectory())
+            profiles.forEach((profile, i) => {
+                $scope.profiles.available.push(decodeURIComponent(profile))
+        })
+        } catch (e) {
+            console.log(e)
+            $scope.profiles = false
+        }
+    }
+
+    $scope.setProfile = () => {
+        storage.set('profile', {
+            profile: $scope.profiles.selected
+        }, (err) => {
+            if (err) throw err
+        })
+    }
+
     $scope.action = function (mod) {
         switch (mod.state[0]) {
             case 1:
@@ -298,19 +338,19 @@ App.controller('modController', ['$scope', '$rootScope', function ($scope, $root
                 $scope.initUpdate(mod)
                 break
             case 3:
-                storage.get('settings', function (err, data) {
+                storage.get('settings', (err, data) => {
+
                     if (err) throw err
 
-                    var params = []
+                    let params = []
 
                     params.push('-noLauncher')
                     params.push('-useBE')
                     params.push('-mod=' + mod.Directories)
 
-                    if (mod.ExParams !== null && typeof mod.ExParams !== 'undefined') {
+                    if (mod.ExParams && typeof mod.ExParams !== 'undefined') {
                         params.extend(mod.ExParams.split(';'))
                     }
-
                     if (data.splash) {
                         params.push('-nosplash')
                     }
@@ -323,20 +363,22 @@ App.controller('modController', ['$scope', '$rootScope', function ($scope, $root
                     if (data.windowed) {
                         params.push('-window')
                     }
-
-                    if (data.mem !== null && data.mem !== '' && typeof data.mem !== 'undefined') {
+                    if ($scope.profiles && typeof $scope.profiles.selected !== 'undefined') {
+                    params.push('-name=' + $scope.profiles.selected)
+                    }
+                    if (data.mem && data.mem !== '' && typeof data.mem !== 'undefined') {
                         params.push('-maxMem=' + data.mem)
                     }
-                    if (data.vram !== null && data.vram !== '' && typeof data.vram !== 'undefined') {
+                    if (data.vram && data.vram !== '' && typeof data.vram !== 'undefined') {
                         params.push('-maxVRAM=' + data.vram)
                     }
-                    if (data.cpu !== null && data.cpu !== '' && typeof data.cpu !== 'undefined') {
+                    if (data.cpu && data.cpu !== '' && typeof data.cpu !== 'undefined') {
                         params.push('-cpuCount=' + data.cpu)
                     }
-                    if (data.thread !== null && data.thread !== '' && typeof data.thread !== 'undefined') {
+                    if (data.thread && data.thread !== '' && typeof data.thread !== 'undefined') {
                         params.push('-exThreads=' + data.thread)
                     }
-                    if (data.add_params !== null && data.add_params !== '' && typeof data.add_params !== 'undefined') {
+                    if (data.add_params && data.add_params !== '' && typeof data.add_params !== 'undefined') {
                         params.push(data.add_params)
                     }
 
